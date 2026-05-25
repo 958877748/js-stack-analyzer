@@ -21,10 +21,8 @@ jobs:
       - name: 安装依赖
         run: npm install
 
-      - name: 安装 pkg 并构建 EXE
-        run: |
-          npm install -g pkg
-          pkg . --target node18-win-x64 --output dist/js-stack-analyzer.exe --no-bytecode
+      - name: 构建 EXE
+        run: npm run build
 
       - name: 上传 EXE 产物
         uses: actions/upload-artifact@v4
