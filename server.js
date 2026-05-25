@@ -1,48 +1,88 @@
 /**
  * JS 堆栈解析器 - 后端服务
  * 
- * 提供 API:
- *   POST /api/parse          - 解析堆栈文本
- *   POST /api/fetch-source   - 从 URL 下载源码（无 CORS 限制）
- *   POST /api/beautify       - 美化压缩代码并建立映射
- *   POST /api/context        - 获取上下文代码（原始偏移模式）
- *   POST /api/pretty-context - 获取美化后的上下文代码
- *   GET  /api/cache-status   - 查看缓存状态
- *   POST /api/clear-cache    - 清除缓存
+ * 双击 EXE 直接运行，自动打开浏览器
  */
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const apiRoutes = require('./src/routes/api');
 
 const app = express();
 const PORT = process.env.PORT || 3020;
 
+// 判断是否为 pkg 打包环境
+const isPkg = typeof process.pkg !== 'undefined';
+const basePath = isPkg ? path.dirname(process.execPath) : __dirname;
+const publicPath = path.join(basePath, 'public');
+
 // 中间件
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
-}));
-app.use(express.json({ limit: '100mb' })); // 支持大文件上传
+app.use(cors({ origin: '*', methods: ['GET', 'POST'], allowedHeaders: ['Content-Type'] }));
+app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // API 路由
 app.use('/api', apiRoutes);
 
 // 静态文件 - 前端页面
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(publicPath));
 
-// 根路径重定向到 index.html
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 // 启动
-app.listen(PORT, () => {
-  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-  console.log(`  JS 堆栈解析器 后端服务已启动`);
-  console.log(`  http://localhost:${PORT}`);
-  console.log(`  API: http://localhost:${PORT}/api`);
-  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-});
+function start() {
+  app.listen(PORT, () => {
+    console.log('');
+    console.log('  ╔══════════════════════════════════════╗');
+    console.log('  ║     JS 堆栈解析器                     ║');
+    console.log('  ║                                      ║');
+    console.log(`  ║  http://localhost:${PORT}                ║`);
+    console.log('  ║                                      ║');
+    console.log('  ║  按 Ctrl+C 关闭                      ║');
+    console.log('  ╚══════════════════════════════════════╝');
+    console.log('');
+
+    // 自动打开浏览器
+    const url = `http://localhost:${PORT}`;
+    try {
+      const { execSync } = require('child_process');
+      if (process.platform === 'win32') {
+        execSync(`start "" "${url}"`, { stdio: 'ignore' });
+      } else if (process.platform === 'darwin') {
+        execSync(`open "${url}"`, { stdio: 'ignore' });
+      } else {
+        execSync(`xdg-open "${url}"`, { stdio: 'ignore' });
+      }
+    } catch (_) { /* 忽略 */ }
+  }).on('error', (err) => {
+    console.error('');
+    console.error('  ❌ 启动失败:', err.message);
+    if (err.code === 'EADDRINUSE') {
+      console.error(` 端口 ${PORT} 已被占用，请关闭其他实例或修改端口`);
+    }
+    console.error('');
+    console.error('  按任意键退出...');
+    try {
+      require('child_process').execSync('pause', { stdio: 'inherit' });
+    } catch (_) {}
+    process.exit(1);
+  });
+}
+
+// 检查 public 目录是否存在
+if (!fs.existsSync(publicPath)) {
+  console.error('');
+  console.error('  ❌ 找不到前端文件:', publicPath);
+  console.error('  请确保 public/index.html 存在');
+  console.error('');
+  console.error('  按任意键退出...');
+  try {
+    require('child_process').execSync('pause', { stdio: 'inherit' });
+  } catch (_) {}
+  process.exit(1);
+}
+
+start();
