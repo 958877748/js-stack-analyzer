@@ -13,9 +13,10 @@ const app = express();
 const PORT = process.env.PORT || 3020;
 
 // 判断是否为 pkg 打包环境
+// pkg: __dirname 是虚拟文件系统路径，public/ 作为 asset 被打包在内
+// 非 pkg: __dirname 是项目目录
 const isPkg = typeof process.pkg !== 'undefined';
-const basePath = isPkg ? path.dirname(process.execPath) : __dirname;
-const publicPath = path.join(basePath, 'public');
+const publicPath = path.join(__dirname, 'public');
 
 // 中间件
 app.use(cors({ origin: '*', methods: ['GET', 'POST'], allowedHeaders: ['Content-Type'] }));
