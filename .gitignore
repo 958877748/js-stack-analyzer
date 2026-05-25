@@ -1,4 +1,5 @@
 node_modules/
+dist/
 test-flow.js
 test-accuracy.js
 nul
