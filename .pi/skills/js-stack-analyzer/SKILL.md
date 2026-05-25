@@ -1,125 +1,124 @@
 ---
 name: js-stack-analyzer
 description: >
-  JavaScript error stack analyzer. Downloads minified JS source files from URLs,
-  beautifies them, and maps character offsets to exact source locations with syntax-highlighted code context.
-  Use whenever the user pastes a JS error stack trace and asks for analysis.
+  JavaScript error stack analyzer. Directly uses Node.js modules to download minified JS source files,
+  beautify them, and map character offsets to exact source locations.
+  Use whenever the user pastes a JS error stack trace.
 ---
 
 # JS Stack Analyzer
 
-## 启动服务
+直接调用项目中的 JS 模块分析堆栈，**不需要启动服务器**。
 
-如果服务未运行，先启动：
+## 核心模块
 
-```bash
-cd /path/to/js-stack-analyzer && node server.js &
-```
+| 模块 | 功能 |
+|------|------|
+| `src/utils/stackParser.js` | 解析堆栈文本为帧列表 |
+| `src/services/fetcher.js` | 从 URL 下载源码文件 |
+| `src/services/beautifier.js` | 美化压缩代码，建立偏移映射，获取上下文 |
 
-服务默认在 `http://localhost:3020`。
-
-## 分析堆栈流程
+## 分析流程
 
 ### 1. 解析堆栈
 
-将用户给的堆栈发送给解析 API：
+```javascript
+const { parseStack } = require('./src/utils/stackParser');
 
-```bash
-curl -s http://localhost:3020/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"stack":"<用户粘贴的完整堆栈>"}'
+const frames = parseStack(stackText);
+// 返回: [{ fn, url, line, col }, ...]
 ```
 
-返回示例：
-
-```json
-{
-  "count": 9,
-  "frames": [
-    { "fn": "t.getUIdata", "url": "https://...index.615df.js", "line": 1, "col": 813928 },
-    ...
-  ],
-  "groups": { "url1": [...], "url2": [...] }
-}
-```
+`stackText` 可以是多行或单行格式，都支持。
 
 ### 2. 下载源码
 
-对每个唯一的 URL 下载源码（后端自动缓存，重复下载秒回）：
+```javascript
+const { fetchSource } = require('./src/services/fetcher');
 
-```bash
-curl -s http://localhost:3020/api/fetch-source \
-  -H "Content-Type: application/json" \
-  -d '{"url":"<文件URL>"}'
+const result = await fetchSource(url);
+const sourceCode = result.content;  // 原始 JS 源码字符串
 ```
 
-### 3. 获取美化后代码上下文
+注意 `fetchSource` 是异步的，需要用 `await`。
 
-对每一帧，获取美化后的代码上下文：
+### 3. 美化 + 建立映射
 
-```bash
-curl -s http://localhost:3020/api/pretty-context \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "<帧所属的文件URL>",
-    "rawOffset": <col值>,
-    "contextLines": 10
-  }'
+```javascript
+const { beautifySource, findPrettyPosition, getPrettyContext } = require('./src/services/beautifier');
+
+const mapping = beautifySource(sourceCode);
+// mapping = { pretty, isMinified, rawNonWs, prettyNonWs, lineStarts, ... }
 ```
 
-返回包含：
-- `mappedPosition.prettyLine` — 美化后的行号
-- `mappedPosition.prettyCol` — 美化后的列号
-- `lines[]` — 上下文代码行（`isTarget` 标记目标行）
-- `lines[].content` — 代码内容（已语法高亮）
+- `mapping.pretty` — 美化后的多行代码
+- `mapping.isMinified` — 是否压缩文件
+- `mapping.rawNonWs` / `mapping.prettyNonWs` — 非空白字符索引表
 
-### 4. 批量获取映射
+### 4. 定位偏移 → 美化后位置
 
-一次请求获取所有帧的美化后位置：
-
-```bash
-curl -s http://localhost:3020/api/pretty-context-batch \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "<文件URL>",
-    "offsets": [<col1>, <col2>, ...],
-    "contextLines": 0
-  }'
+```javascript
+const pos = findPrettyPosition(mapping, rawOffset);
+// pos = { prettyLine, prettyCol, confidence }
+// confidence: 'exact' 精确 | 'approximate' 近似
 ```
 
-### 5. 呈现结果
+### 5. 获取代码上下文
 
-向用户展示：
+```javascript
+const ctx = getPrettyContext(mapping.pretty, pos.prettyLine, pos.prettyCol, contextLines);
+// ctx = { targetLine, targetCol, lines: [{ lineNum, content, isTarget }], totalLines }
+```
 
-- **错误信息**：堆栈的第一行
-- **帧列表**：每帧的函数名、文件、原始偏移 → 美化后行号
-- **代码上下文**：目标行用黄色高亮标注 `←`，附带语法高亮
+## 方式一：直接 require 模块（推荐给 AI 使用）
 
-## 快速分析脚本
+```javascript
+const { parseStack } = require('./src/utils/stackParser');
+const { fetchSource } = require('./src/services/fetcher');
+const { beautifySource, findPrettyPosition, getPrettyContext } = require('./src/services/beautifier');
 
-一键分析整个堆栈：
+// 1. 解析
+const frames = parseStack(stackText);
+
+// 2. 对每个文件下载 + 美化 + 映射
+const groups = {};
+for (const f of frames) {
+  if (!groups[f.url]) groups[f.url] = [];
+  groups[f.url].push(f);
+}
+
+for (const [url, fileFrames] of Object.entries(groups)) {
+  // 下载
+  const { content } = await fetchSource(url);
+  // 美化
+  const mapping = beautifySource(content);
+  // 对每一帧定位
+  for (const f of fileFrames) {
+    const pos = findPrettyPosition(mapping, f.col);
+    const ctx = getPrettyContext(mapping.pretty, pos.prettyLine, pos.prettyCol, 10);
+    // ctx.lines 就是带语法高亮的上下文代码
+  }
+}
+```
+
+## 方式二：用 CLI 脚本（命令行快速分析）
 
 ```bash
-# 1. 先把堆栈保存到变量
-STACK='<用户粘贴的堆栈>'
-
-# 2. 解析
-PARSE=$(curl -s http://localhost:3020/api/parse -H "Content-Type: application/json" -d "{\"stack\":$(echo "$STACK" | jq -Rs .)}")
-echo "$PARSE" | jq '.frames[] | {fn, url: (.url | split("/") | last), col}'
-
-# 3. 下载并获取所有帧的上下文（用 jq 处理）
-echo "$PARSE" | jq -r '.groups | to_entries[] | .key' | while read url; do
-  echo "=== $url ==="
-  curl -s http://localhost:3020/api/pretty-context-batch \
-    -H "Content-Type: application/json" \
-    -d "{\"url\":$(echo "$url" | jq -Rs .),\"offsets\":[$(echo "$PARSE" | jq "[.groups[\"$url\"][].col]" | jq -c . | tr -d '[]')],\"contextLines\":5}"
-done
+node .pi/skills/js-stack-analyzer/scripts/analyze.js "<堆栈文本>"
 ```
+
+或者从文件/管道读取：
+
+```bash
+cat stack.txt | node .pi/skills/js-stack-analyzer/scripts/analyze.js
+```
+
+脚本会自动下载源码、美化、定位、输出结果。
 
 ## 注意事项
 
-- 堆栈可以是多行或单行格式（`at fn (url:line:col) at fn2 ...`）
-- 支持 Chrome/Edge/Safari/Firefox/Node.js 格式
-- 同一个 URL 只会下载一次（后端缓存 30 分钟）
-- `col` 值直接作为字符偏移量，对于单行压缩文件即精确位置
-- 美化后代码带有 Chrome DevTools 风格的语法高亮
+- `fetchSource()` 是异步的，记得用 `await`
+- 同一个 URL 第二次调用 `fetchSource()` 会走缓存（内存缓存 30 分钟）
+- `beautifySource()` 对非压缩文件（行数 > 20）直接返回原文本，不美化
+- 映射精度：当 `confidence === 'exact'` 时为精确匹配（非空白字符对齐），否则为估算值
+- `col` 值在单行压缩文件中就是字符偏移量，直接传给 `findPrettyPosition`
