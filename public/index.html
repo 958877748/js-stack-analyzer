@@ -27,7 +27,7 @@ body {
   min-height: 100vh;
 }
 
-/* ===== 初始输入页 ===== */
+/* ===== 输入页 ===== */
 #inputPage {
   display: flex;
   align-items: center;
@@ -96,13 +96,9 @@ body {
   min-height: 100vh;
   padding: 20px;
 }
-.loading-card {
-  text-align: center;
-  max-width: 500px;
-}
+.loading-card { text-align: center; max-width: 500px; }
 .loading-spinner {
-  width: 48px;
-  height: 48px;
+  width: 48px; height: 48px;
   border: 4px solid var(--border);
   border-top-color: var(--accent);
   border-radius: 50%;
@@ -110,151 +106,155 @@ body {
   margin: 0 auto 20px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.loading-card .step {
-  font-size: 15px;
-  margin-bottom: 8px;
-  color: var(--fg);
-}
-.loading-card .detail {
-  font-size: 13px;
-  color: var(--muted);
-}
-.loading-progress {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-.loading-progress .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: background 0.3s;
-}
+.loading-card .step { font-size: 15px; margin-bottom: 8px; color: var(--fg); }
+.loading-card .detail { font-size: 13px; color: var(--muted); }
+.loading-progress { margin-top: 24px; display: flex; justify-content: center; gap: 8px; }
+.loading-progress .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
 .loading-progress .dot.active { background: var(--accent); }
 .loading-progress .dot.done { background: var(--green); }
 
 /* ===== 结果页 ===== */
 #resultPage {
   display: none;
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
+  height: 100vh;
+  overflow: hidden;
 }
-.result-header {
+
+/* 顶部栏 */
+.result-topbar {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.result-header h2 {
-  font-size: 18px;
-  color: var(--accent);
-}
-.result-header .stat {
-  font-size: 13px;
-  color: var(--muted);
-}
-.result-header .stat strong { color: var(--fg); }
-.result-header .file-badge {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 10px 16px;
   background: var(--surface);
-  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.result-topbar h2 { font-size: 16px; color: var(--accent); flex-shrink: 0; }
+.result-topbar .stat { font-size: 12px; color: var(--muted); }
+.result-topbar .file-badge {
+  font-size: 11px; padding: 1px 6px; border-radius: 3px;
+  background: var(--line-bg); color: var(--muted); white-space: nowrap;
 }
 .btn-back {
-  background: var(--surface);
+  background: var(--line-bg);
   color: var(--fg);
   border: 1px solid var(--border);
-  padding: 6px 16px;
-  border-radius: 6px;
+  padding: 4px 12px;
+  border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   margin-left: auto;
+  flex-shrink: 0;
 }
 .btn-back:hover { filter: brightness(1.15); }
 
-/* 帧列表 */
-.stack-frames { list-style: none; }
-.stack-frame {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  margin-bottom: 6px;
-  overflow: hidden;
+/* 左右分栏 */
+.result-body {
+  display: flex;
+  height: calc(100vh - 50px);
 }
-.frame-header {
+
+/* ===== 左侧: 代码展示 ===== */
+.code-panel {
+  flex: 1;
+  overflow: auto;
+  background: var(--line-bg);
+  padding: 0;
+  min-width: 0;
+}
+.code-panel-header {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-  cursor: pointer;
+  gap: 12px;
+  padding: 8px 16px;
   background: var(--surface);
-  gap: 8px;
-  user-select: none;
-  transition: background 0.15s;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: 13px;
 }
-.frame-header:hover { background: #3a3d4e; }
-.frame-index {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  background: var(--accent);
-  color: var(--bg);
-  font-size: 11px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-.frame-fn {
-  color: var(--highlight);
-  font-weight: 600;
-  flex-shrink: 0;
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.frame-loc {
-  color: var(--link);
+.code-panel-header .frame-label { color: var(--highlight); font-weight: 600; }
+.code-panel-header .loc-label { color: var(--green); }
+.code-panel-header .file-label { color: var(--muted); margin-left: auto; }
+.code-viewport { padding: 0; }
+.code-viewport pre {
+  padding: 8px 0;
   font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-  flex: 1;
+  line-height: 1.55;
+  min-width: fit-content;
 }
-.frame-offset { color: #a6adc8; font-size: 12px; flex-shrink: 0; }
-.frame-pretty-loc { color: var(--green); font-size: 11px; flex-shrink: 0; margin-left: 8px; }
-.frame-arrow { color: #a6adc8; font-size: 12px; flex-shrink: 0; margin-left: 4px; }
-
-.frame-code { display: none; overflow-x: auto; background: var(--line-bg); border-top: 1px solid var(--border); }
-.frame-code.open { display: block; }
-.frame-code pre { padding: 8px 12px; font-size: 12px; line-height: 1.55; min-width: fit-content; margin: 0; }
-
-.code-line { display: flex; white-space: pre; padding: 0 8px; border-radius: 2px; min-height: 19px; }
-.code-line:hover { background: rgba(137,180,250,0.08); }
+.code-line { display: flex; white-space: pre; padding: 0 16px; min-height: 19px; }
+.code-line:hover { background: rgba(137,180,250,0.06); }
 .code-line.target {
   background: var(--highlight);
   color: #1a1a2e;
   font-weight: 700;
-  border-radius: 3px;
 }
 .code-line-num {
   display: inline-block;
-  width: 50px;
+  width: 60px;
   text-align: right;
-  padding-right: 12px;
+  padding-right: 14px;
   color: #585b70;
   user-select: none;
   flex-shrink: 0;
 }
 .code-line.target .code-line-num { color: #1a1a2e; }
 .code-line-content { white-space: pre-wrap; word-break: break-all; }
+.code-line .arrow-marker {
+  color: #e64553;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+/* ===== 右侧: 帧列表 ===== */
+.frame-panel {
+  width: 380px;
+  min-width: 380px;
+  overflow-y: auto;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+}
+.frame-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+.frame-item:hover { background: var(--surface); }
+.frame-item.active {
+  background: var(--surface);
+  border-left: 3px solid var(--accent);
+}
+.frame-item .idx {
+  width: 22px; height: 22px; border-radius: 4px;
+  background: var(--accent); color: var(--bg);
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.frame-item .fn {
+  color: var(--highlight); font-weight: 600; font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1; min-width: 0;
+}
+.frame-item .loc {
+  color: var(--link); font-size: 11px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex-shrink: 1; min-width: 0;
+}
+.frame-item .offset {
+  color: #a6adc8; font-size: 11px; flex-shrink: 0;
+}
+.frame-item .pretty-loc {
+  color: var(--green); font-size: 11px; flex-shrink: 0; margin-left: 4px;
+}
 
 /* 语法高亮 */
 .hl-keyword  { color: #569cd6; }
@@ -277,17 +277,17 @@ body {
 .code-line.target .hl-fncall   { color: #9a7a2a; }
 .code-line.target .hl-var      { color: #2a6a8a; }
 
-@media (max-width: 800px) { .frame-fn { max-width: 120px; } }
+@media (max-width: 900px) { .frame-panel { width: 260px; min-width: 260px; } }
 </style>
 </head>
 <body>
 
-<!-- ====== 初始输入页 ====== -->
+<!-- ====== 输入页 ====== -->
 <div id="inputPage">
   <div class="input-card">
     <h1>JS 堆栈解析器</h1>
-    <div class="sub">粘贴 JavaScript 错误堆栈，解析每一帧对应的源码上下文</div>
-    <textarea id="stackInput" placeholder="在此粘贴错误堆栈...&#10;&#10;例如:&#10;TypeError: String(...).padStart is not a function&#10;    at e.getFormatCountdown (https://example.com/app.js:1:882872)&#10;    at t.refreshCountDown (https://example.com/app.js:1:123684)">TypeError: String(...).padStart is not a function
+    <div class="sub">粘贴 JavaScript 错误堆栈，自动解析每一帧对应的源码上下文</div>
+    <textarea id="stackInput" placeholder="在此粘贴错误堆栈...">TypeError: String(...).padStart is not a function
     at e.getFormatCountdown (https://game.kg.qq.com/tmegames/pethome_kg/assets/main/index.615df.js:1:882872)
     at t.refreshCountDown (https://game.kg.qq.com/tmegames/pethome_kg/assets/main/index.615df.js:1:123684)
     at t.onFeedingBowlSecond (https://game.kg.qq.com/tmegames/pethome_kg/assets/main/index.615df.js:1:121245)
@@ -315,22 +315,45 @@ body {
 
 <!-- ====== 结果页 ====== -->
 <div id="resultPage">
-  <div class="result-header">
+  <!-- 顶部栏 -->
+  <div class="result-topbar">
+    <button class="btn-back" onclick="backToInput()">← 返回</button>
     <h2>📋 堆栈帧</h2>
     <span class="stat" id="resultStat"></span>
     <span id="fileBadges"></span>
-    <button class="btn-back" onclick="backToInput()">← 返回</button>
   </div>
-  <div id="resultOutput"></div>
+
+  <!-- 左右分栏 -->
+  <div class="result-body">
+    <!-- 左侧: 代码展示 -->
+    <div class="code-panel" id="codePanel">
+      <div class="code-panel-header">
+        <span class="frame-label" id="codeFrameLabel">#0</span>
+        <span class="loc-label" id="codeLocLabel">-</span>
+        <span class="file-label" id="codeFileLabel"></span>
+      </div>
+      <div class="code-viewport" id="codeViewport">
+        <div style="padding:40px;text-align:center;color:var(--muted);font-size:14px">
+          ⟳ 加载中...
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧: 帧列表 -->
+    <div class="frame-panel" id="framePanel"></div>
+  </div>
 </div>
 
 <script>
 const API_BASE = '/api';
 const $ = id => document.getElementById(id);
+const CONTEXT_LINES = 100;
 
 let CACHED_FRAMES = [];
-let CACHED_SOURCES = {}; // url -> { size, totalLines, mappedPositions: { offset -> {prettyLine,prettyCol} } }
+let CACHED_SOURCES = {};  // url -> { size, totalLines, fileName, mappedPositions }
+let SELECTED_INDEX = 0;
 
+// ===== 工具 =====
 function escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
@@ -396,29 +419,10 @@ async function api(url, data) {
 }
 
 // ===== 页面切换 =====
-function showInput() {
-  $('inputPage').style.display = 'flex';
-  $('loadingPage').style.display = 'none';
-  $('resultPage').style.display = 'none';
-}
-
-function showLoading() {
-  $('inputPage').style.display = 'none';
-  $('loadingPage').style.display = 'flex';
-  $('resultPage').style.display = 'none';
-}
-
-function showResult() {
-  $('inputPage').style.display = 'none';
-  $('loadingPage').style.display = 'none';
-  $('resultPage').style.display = 'block';
-}
-
-function setLoadStep(step, detail) {
-  $('loadStep').textContent = step;
-  $('loadDetail').textContent = detail || '';
-}
-
+function showInput() { $('inputPage').style.display = 'flex'; $('loadingPage').style.display = 'none'; $('resultPage').style.display = 'none'; }
+function showLoading() { $('inputPage').style.display = 'none'; $('loadingPage').style.display = 'flex'; $('resultPage').style.display = 'none'; }
+function showResult() { $('inputPage').style.display = 'none'; $('loadingPage').style.display = 'none'; $('resultPage').style.display = 'flex'; }
+function setLoadStep(step, detail) { $('loadStep').textContent = step; $('loadDetail').textContent = detail || ''; }
 function setProgress(current, total) {
   const container = $('loadProgress');
   container.innerHTML = '';
@@ -428,10 +432,7 @@ function setProgress(current, total) {
     container.appendChild(dot);
   }
 }
-
-function backToInput() {
-  showInput();
-}
+function backToInput() { showInput(); }
 
 // ===== 主流程 =====
 async function startParse() {
@@ -443,51 +444,31 @@ async function startParse() {
   setProgress(0, 3);
 
   try {
-    // 1. 解析堆栈
+    // 1. 解析
     const parseData = await api('/parse', { stack });
     CACHED_FRAMES = parseData.frames;
-    if (parseData.frames.length === 0) {
-      throw new Error('未识别到有效的堆栈帧');
-    }
+    if (parseData.frames.length === 0) throw new Error('未识别到有效的堆栈帧');
     setProgress(1, 3);
 
-    // 2. 收集所有唯一 URL
+    // 2. 下载 + 美化所有文件
     const uniqueUrls = [...new Set(parseData.frames.map(f => f.url))];
     CACHED_SOURCES = {};
 
-    // 3. 依次下载 + 美化每个文件
     for (let ui = 0; ui < uniqueUrls.length; ui++) {
       const url = uniqueUrls[ui];
       const fileName = url.split('/').pop().split('?')[0];
 
-      setLoadStep(
-        `⬇️ 下载文件 [${ui+1}/${uniqueUrls.length}]`,
-        fileName
-      );
-
+      setLoadStep(`⬇️ 下载 [${ui+1}/${uniqueUrls.length}]`, fileName);
       const fetchData = await api('/fetch-source', { url });
       const fileSize = (fetchData.size / 1024 / 1024).toFixed(1);
 
-      setLoadStep(
-        `✨ 美化代码 [${ui+1}/${uniqueUrls.length}]`,
-        `${fileName} (${fileSize}MB)`
-      );
+      setLoadStep(`✨ 美化 [${ui+1}/${uniqueUrls.length}]`, `${fileName} (${fileSize}MB)`);
 
-      // 找出属于这个 URL 的帧偏移
-      const frameOffsets = parseData.frames
-        .filter(f => f.url === url)
-        .map(f => f.col);
-
-      const batchResult = await api('/pretty-context-batch', {
-        url,
-        offsets: frameOffsets,
-        contextLines: 0,
-      });
+      const frameOffsets = parseData.frames.filter(f => f.url === url).map(f => f.col);
+      const batchResult = await api('/pretty-context-batch', { url, offsets: frameOffsets, contextLines: 0 });
 
       const mapped = {};
-      for (const r of batchResult.results) {
-        mapped[r.rawOffset] = r.mappedPosition;
-      }
+      for (const r of batchResult.results) mapped[r.rawOffset] = r.mappedPosition;
 
       CACHED_SOURCES[url] = {
         size: fetchData.size,
@@ -498,111 +479,95 @@ async function startParse() {
     }
 
     setProgress(3, 3);
-    setLoadStep('✅ 完成!', '正在渲染结果...');
-
-    // 短暂延迟让用户看到完成状态
+    setLoadStep('✅ 完成!', '渲染结果...');
     await new Promise(r => setTimeout(r, 300));
-    renderResult();
+
+    SELECTED_INDEX = 0;
+    renderFrameList();
+    await showFrame(0);
     showResult();
   } catch (e) {
     setLoadStep('❌ 出错了', e.message);
-    setTimeout(() => {
-      alert('错误: ' + e.message);
-      showInput();
-    }, 1500);
+    setTimeout(() => { alert('错误: ' + e.message); showInput(); }, 1500);
   }
 }
 
-// ===== 渲染结果 =====
-function renderResult() {
-  // 统计
-  const totalFiles = Object.keys(CACHED_SOURCES).length;
-  const totalLines = Object.values(CACHED_SOURCES).reduce((s, v) => s + v.totalLines, 0);
-  $('resultStat').textContent = `${CACHED_FRAMES.length} 帧 · ${totalFiles} 文件 · ${totalLines.toLocaleString()} 行`;
-
-  // 文件徽章
-  let badges = '';
-  for (const [url, src] of Object.entries(CACHED_SOURCES)) {
-    const fn = src.fileName || url.split('/').pop().split('?')[0];
-    const sizeMB = (src.size / 1024 / 1024).toFixed(1);
-    badges += `<span class="file-badge">📄 ${fn} (${sizeMB}MB · ${src.totalLines} 行)</span> `;
-  }
-  $('fileBadges').innerHTML = badges;
-
-  // 帧列表
-  const output = $('resultOutput');
-  const contextSize = 100;
-
-  let html = '<div class="stack-frames">';
+// ===== 渲染右侧帧列表 =====
+function renderFrameList() {
+  const panel = $('framePanel');
+  panel.innerHTML = '';
 
   for (let i = 0; i < CACHED_FRAMES.length; i++) {
     const f = CACHED_FRAMES[i];
     const shortUrl = f.url.replace(/^https?:\/\//, '').replace(/\?.*/, '');
     const offsetStr = `${f.line}:${f.col}`;
 
-    html += `<div class="stack-frame">`;
-    html += `<div class="frame-header" onclick="toggleFrame(${i})">`;
-    html += `<span class="frame-index">${i}</span>`;
-    html += `<span class="frame-fn" title="${escapeHtml(f.fn)}">${escapeHtml(f.fn)}</span>`;
-    html += `<span class="frame-loc" title="${escapeHtml(f.url)}">${escapeHtml(shortUrl)}</span>`;
-    html += `<span class="frame-offset">${offsetStr}</span>`;
+    const item = document.createElement('div');
+    item.className = 'frame-item' + (i === SELECTED_INDEX ? ' active' : '');
+    item.dataset.idx = i;
 
+    let prettyHtml = '';
     if (CACHED_SOURCES[f.url] && CACHED_SOURCES[f.url].mappedPositions[f.col]) {
       const pos = CACHED_SOURCES[f.url].mappedPositions[f.col];
-      html += `<span class="frame-pretty-loc">→ ${pos.prettyLine}:${pos.prettyCol}</span>`;
+      prettyHtml = `<span class="pretty-loc">→ ${pos.prettyLine}</span>`;
     }
 
-    html += `<span class="frame-arrow" id="arrow-${i}">▶</span>`;
-    html += `</div>`;
+    item.innerHTML = `
+      <span class="idx">${i}</span>
+      <span class="fn" title="${escapeHtml(f.fn)}">${escapeHtml(f.fn)}</span>
+      <span class="loc">${escapeHtml(f.url.split('/').pop() || shortUrl)}</span>
+      <span class="offset">${offsetStr}</span>
+      ${prettyHtml}
+    `;
 
-    html += `<div class="frame-code" id="code-${i}">`;
-    html += `<div id="code-content-${i}"><pre><div class="code-line"><span class="code-line-content" style="color:var(--muted);padding:8px">点击展开</span></div></pre></div>`;
-    html += `</div></div>`;
-  }
-
-  html += '</div>';
-  output.innerHTML = html;
-
-  // 自动展开第一帧
-  setTimeout(() => toggleFrame(0), 200);
-}
-
-// ===== 展开帧 =====
-async function toggleFrame(idx) {
-  const code = $(`code-${idx}`);
-  const arrow = $(`arrow-${idx}`);
-  if (!code || !arrow) return;
-  const isOpen = code.classList.toggle('open');
-  arrow.textContent = isOpen ? '▼' : '▶';
-
-  if (isOpen) {
-    await loadContext(idx);
+    item.addEventListener('click', () => selectFrame(i));
+    panel.appendChild(item);
   }
 }
 
-async function loadContext(frameIdx) {
-  const f = CACHED_FRAMES[frameIdx];
-  const container = $(`code-content-${frameIdx}`);
-  if (!container) return;
+// ===== 选择帧 =====
+function selectFrame(idx) {
+  if (idx === SELECTED_INDEX) return;
+  SELECTED_INDEX = idx;
 
+  // 更新列表高亮
+  document.querySelectorAll('.frame-item').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+
+  showFrame(idx);
+}
+
+// ===== 显示帧代码 =====
+async function showFrame(idx) {
+  const f = CACHED_FRAMES[idx];
   const sourceUrl = f.url;
+
+  // 更新头部信息
+  $('codeFrameLabel').textContent = `#${idx} ${escapeHtml(f.fn)}`;
+  $('codeLocLabel').textContent = `${f.line}:${f.col}`;
+  const fileShort = sourceUrl.split('/').pop().split('?')[0];
+  $('codeFileLabel').textContent = `📄 ${fileShort}`;
+
+  const viewport = $('codeViewport');
+
   if (!CACHED_SOURCES[sourceUrl]) {
-    container.innerHTML = '<pre><div class="code-line"><span class="code-line-content" style="color:var(--error-fg);padding:8px">未加载该文件</span></div></pre>';
+    viewport.innerHTML = '<div style="padding:40px;text-align:center;color:var(--error-fg)">未加载该文件</div>';
     return;
   }
 
-  const contextSize = 100;
-  container.innerHTML = '<pre><div class="code-line"><span class="code-line-content" style="color:var(--muted);padding:8px"><span class="loading-spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;margin:0 6px 0 0"></span> 加载中...</span></div></pre>';
+  // 显示加载状态
+  viewport.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)"><div class="loading-spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto 12px"></div>加载代码...</div>';
 
   try {
     const data = await api('/pretty-context', {
       url: sourceUrl,
       rawOffset: f.col,
-      contextLines: contextSize,
+      contextLines: CONTEXT_LINES,
     });
 
     if (!data.mappedPosition) {
-      container.innerHTML = '<pre><div class="code-line"><span class="code-line-content" style="color:var(--error-fg);padding:8px">映射失败</span></div></pre>';
+      viewport.innerHTML = '<div style="padding:40px;text-align:center;color:var(--error-fg)">映射失败</div>';
       return;
     }
 
@@ -611,21 +576,29 @@ async function loadContext(frameIdx) {
       const cls = line.isTarget ? 'code-line target' : 'code-line';
       const ln = String(line.lineNum).padStart(5);
       const content = highlightJs(line.content);
-      html += `<div class="${cls}"><span class="code-line-num">${ln}</span><span class="code-line-content">${content}${line.isTarget ? ' <span style="color:#e64553;font-weight:700">←</span>' : ''}</span></div>`;
+      const arrow = line.isTarget ? ' <span class="arrow-marker">←</span>' : '';
+      html += `<div class="${cls}"><span class="code-line-num">${ln}</span><span class="code-line-content">${content}${arrow}</span></div>`;
     }
     html += '</pre>';
 
+    // 底部信息
     const pos = data.mappedPosition;
     const srcInfo = CACHED_SOURCES[sourceUrl];
-    const fileLabel = srcInfo ? srcInfo.fileName : sourceUrl.split('/').pop().split('?')[0];
-    html += `<div style="padding:4px 12px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)">
-      📄 ${fileLabel} · 偏移 ${data.rawOffset} → ${pos.prettyLine}:${pos.prettyCol}
-      · ${pos.confidence === 'exact' ? '✅' : '⚠️'}
+    const fn = srcInfo ? srcInfo.fileName : fileShort;
+    html += `<div style="padding:6px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);background:var(--surface)">
+      📄 ${fn} · 偏移 ${data.rawOffset} → ${pos.prettyLine}:${pos.prettyCol} ${pos.confidence === 'exact' ? '✅' : '⚠️'}
+      &nbsp;·&nbsp; 前后各 ${CONTEXT_LINES} 行
     </div>`;
 
-    container.innerHTML = html;
+    viewport.innerHTML = html;
+
+    // 滚动到目标行
+    const targetEl = viewport.querySelector('.code-line.target');
+    if (targetEl) {
+      targetEl.scrollIntoView({ block: 'center' });
+    }
   } catch (e) {
-    container.innerHTML = `<pre><div class="code-line"><span class="code-line-content" style="color:var(--error-fg);padding:8px">失败: ${escapeHtml(e.message)}</span></div></pre>`;
+    viewport.innerHTML = `<div style="padding:40px;text-align:center;color:var(--error-fg)">失败: ${escapeHtml(e.message)}</div>`;
   }
 }
 </script>
