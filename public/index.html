@@ -488,8 +488,8 @@ async function startParse() {
 
     SELECTED_INDEX = 0;
     renderFrameList();
-    await showFrame(0);
     showResult();
+    await showFrame(0);
   } catch (e) {
     setLoadStep('❌ 出错了', e.message);
     setTimeout(() => { alert('错误: ' + e.message); showInput(); }, 1500);
