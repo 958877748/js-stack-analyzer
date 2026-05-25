@@ -8,53 +8,38 @@ description: >
 
 # JS Stack Analyzer
 
-## 项目结构（AI 所需部分）
+## 使用方式
 
-```
-js-stack-analyzer/
-├── src/
-│   ├── utils/stackParser.js     ← parseStack(text) 解析堆栈
-│   ├── services/fetcher.js      ← fetchSource(url) 下载源码
-│   └── services/beautifier.js   ← beautifySource() / findPrettyPosition() / getPrettyContext()
-└── scripts/analyze.js           ← CLI 工具
-```
-
-## 直接 require 模块分析
+### 直接 require 模块
 
 ```javascript
 const { parseStack } = require('./src/utils/stackParser');
 const { fetchSource } = require('./src/services/fetcher');
 const { beautifySource, findPrettyPosition, getPrettyContext } = require('./src/services/beautifier');
 
-// 1. 解析堆栈 → [{ fn, url, line, col }]
 const frames = parseStack(stackText);
 
-// 2. 按 URL 分组，逐个下载 + 美化
 const groups = {};
 for (const f of frames) groups[f.url] ??= [];
 for (const f of frames) groups[f.url].push(f);
 
 for (const [url, fileFrames] of Object.entries(groups)) {
-  const { content } = await fetchSource(url);               // 下载
-  const mapping = beautifySource(content);                  // 美化 + 建映射
+  const { content } = await fetchSource(url);
+  const mapping = beautifySource(content);
   for (const f of fileFrames) {
-    const pos = findPrettyPosition(mapping, f.col);         // 偏移 → 行:列
+    const pos = findPrettyPosition(mapping, f.col);
     const ctx = getPrettyContext(mapping.pretty, pos.prettyLine, pos.prettyCol, 10);
-    // ctx.lines: [{ lineNum, content, isTarget }]          // 上下文代码
   }
 }
 ```
 
-## CLI 快速分析
+### CLI 工具
 
 ```bash
-node scripts/analyze.js "<堆栈文本>"
-cat stack.txt | node scripts/analyze.js
+node scripts/analyze.js "<堆栈>"
+echo "<堆栈>" | node scripts/analyze.js
 ```
 
 ## 支持格式
 
-- Chrome/Edge: `at fn (url:line:col)` / `at url:line:col`
-- Safari: `fn@url:line:col` / `@url:line:col`
-- Firefox: `fn(url:line:col)`
-- 单行或多行均可
+Chrome / Safari / Firefox / 单行或多行
