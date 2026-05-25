@@ -1,0 +1,15 @@
+{
+  "name": "js-stack-analyzer",
+  "version": "1.0.0",
+  "description": "JS 堆栈解析器 - 根据错误堆栈定位源码位置并展示上下文",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "js-beautify": "^1.14.9"
+  }
+}
