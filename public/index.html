@@ -242,22 +242,17 @@ body {
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.frame-item .fn {
-  color: var(--highlight); font-weight: 600; font-size: 13px;
+.frame-item .text {
+  font-size: 12px;
+  line-height: 1.5;
   word-break: break-all;
-  flex: 1; min-width: 0;
+  min-width: 0;
 }
-.frame-item .loc {
-  color: var(--link); font-size: 11px;
-  word-break: break-all;
-  flex-shrink: 1; min-width: 0;
-}
-.frame-item .offset {
-  color: #a6adc8; font-size: 11px; flex-shrink: 0;
-}
-.frame-item .pretty-loc {
-  color: var(--green); font-size: 11px; flex-shrink: 0; margin-left: 4px;
-}
+.frame-item .text .fn { color: var(--highlight); font-weight: 600; }
+.frame-item .text .loc { color: var(--link); }
+.frame-item .text .offset { color: #a6adc8; }
+.frame-item .text .pretty-loc { color: var(--green); }
+.frame-item .text .sep { color: var(--muted); }
 
 /* 语法高亮 */
 .hl-keyword  { color: #569cd6; }
@@ -515,18 +510,16 @@ function renderFrameList() {
     item.className = 'frame-item' + (i === SELECTED_INDEX ? ' active' : '');
     item.dataset.idx = i;
 
-    let prettyHtml = '';
+    let prettyStr = '';
     if (CACHED_SOURCES[f.url] && CACHED_SOURCES[f.url].mappedPositions[f.col]) {
       const pos = CACHED_SOURCES[f.url].mappedPositions[f.col];
-      prettyHtml = `<span class="pretty-loc">→ ${pos.prettyLine}</span>`;
+      prettyStr = ` <span class="sep">·</span> <span class="pretty-loc">→ ${pos.prettyLine}</span>`;
     }
 
+    const fileName = f.url.split('/').pop() || shortUrl;
     item.innerHTML = `
       <span class="idx">${i}</span>
-      <span class="fn" title="${escapeHtml(f.fn)}">${escapeHtml(f.fn)}</span>
-      <span class="loc">${escapeHtml(f.url.split('/').pop() || shortUrl)}</span>
-      <span class="offset">${offsetStr}</span>
-      ${prettyHtml}
+      <span class="text"><span class="fn">${escapeHtml(f.fn)}</span> <span class="sep">·</span> <span class="loc">${escapeHtml(fileName)}</span> <span class="sep">·</span> <span class="offset">${offsetStr}</span>${prettyStr}</span>
     `;
 
     item.addEventListener('click', () => selectFrame(i));
