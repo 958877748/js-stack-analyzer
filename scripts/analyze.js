@@ -5,7 +5,7 @@
  * 或: cat stack.txt | node scripts/analyze.js
  */
 const path = require('path');
-const root = path.resolve(__dirname, '../../../../');
+const root = path.resolve(__dirname, '..');
 
 const { parseStack } = require(path.join(root, 'src/utils/stackParser'));
 const { fetchSource } = require(path.join(root, 'src/services/fetcher'));

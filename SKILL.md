@@ -104,13 +104,13 @@ for (const [url, fileFrames] of Object.entries(groups)) {
 ## 方式二：用 CLI 脚本（命令行快速分析）
 
 ```bash
-node .pi/skills/js-stack-analyzer/scripts/analyze.js "<堆栈文本>"
+node scripts/analyze.js "<堆栈文本>"
 ```
 
 或者从文件/管道读取：
 
 ```bash
-cat stack.txt | node .pi/skills/js-stack-analyzer/scripts/analyze.js
+cat stack.txt | node scripts/analyze.js
 ```
 
 脚本会自动下载源码、美化、定位、输出结果。
