@@ -4,43 +4,31 @@
 
 /**
  * 解析堆栈文本，提取帧信息
+ * 
+ * 支持多行和单行两种格式：
+ *   多行: Error: msg\n    at fn (url:line:col)\n    at fn2 (url:line:col)\n
+ *   单行: Error: msg at fn (url:line:col) at fn2 (url:line:col)
+ *
  * @param {string} text - 原始堆栈文本
  * @returns {Array<{raw:string, fn:string, url:string, line:number, col:number}>}
  */
 function parseStack(text) {
   const frames = [];
-  const lines = text.split('\n');
 
-  // 支持多种堆栈格式
-  // 注意: URL 中的 :// 包含冒号，所以不能用 [^\s:()] 排除冒号
-  // 改用 [^\s()] 并配合 lazy 量词 +?，让正则引擎从短到长尝试直到匹配最后的 :line:col
-  const patterns = [
-    // Chrome/Edge: at fn (url:line:col)  or  at url:line:col
-    /^\s*at\s+(?:(.+?)\s+\()?\s*((?:https?|ftp):\/\/[^\s()]+?):(\d+):(\d+)(?:\)|$|\s)/,
-    // Chrome/Edge: at fn (url:line:col:col)  (某些场景有两个 col)
-    /^\s*at\s+(?:(.+?)\s+\()?\s*((?:https?|ftp):\/\/[^\s()]+?):(\d+):(\d+):(\d+)(?:\)|$|\s)/,
-    // Safari: fn@url:line:col
-    /^\s*(.+?)@((?:https?|ftp):\/\/[^\s()]+?):(\d+):(\d+)(?:\)|$|\s)/,
-    // Firefox: fn@url:line:col
-    /^\s*(.+?)\(((?:https?|ftp):\/\/[^\s()]+?):(\d+):(\d+)\)/,
-    // Node.js: at fn (path:line:col) - 本地文件路径
-    /^\s*at\s+(?:(.+?)\s+\()?\s*((?:\/|[A-Z]:\\)[^\s()]+?):(\d+):(\d+)(?:\)|$|\s)/,
-  ];
+  // 统一的正则：全局匹配所有 "at fn (url:line:col)" 模式
+  // 不依赖行首锚点 ^，可以在文本任意位置匹配
+  // 使用全局 g 标志一次找出所有帧
+  const globalRe = /at\s+(?:(.+?)\s+\()?\s*((?:https?|ftp):\/\/[^\s()]+?):(\d+):(\d+)/g;
 
-  for (const line of lines) {
-    for (const re of patterns) {
-      const m = line.match(re);
-      if (m) {
-        frames.push({
-          raw: line.trim(),
-          fn: m[1] || '<anonymous>',
-          url: m[2],
-          line: parseInt(m[3], 10),
-          col: parseInt(m[4], 10),
-        });
-        break;
-      }
-    }
+  let match;
+  while ((match = globalRe.exec(text)) !== null) {
+    frames.push({
+      raw: match[0],
+      fn: (match[1] || '<anonymous>').trim(),
+      url: match[2],
+      line: parseInt(match[3], 10),
+      col: parseInt(match[4], 10),
+    });
   }
 
   return frames;

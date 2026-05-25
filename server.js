@@ -23,7 +23,7 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 app.use('/api', apiRoutes);
-app.use(express.static(publicPath));
+app.use(express.static(publicPath, { maxAge: 0, etag: false }));
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(publicPath, 'index.html'));
