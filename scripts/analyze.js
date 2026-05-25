@@ -52,14 +52,16 @@ async function analyze(stackText, contextLines = 10) {
 
 // 入口
 const stack = process.argv[2];
+const contextLines = parseInt(process.argv[3], 10) || 5;
+
 if (stack) {
-  analyze(stack, 5).then(r => console.log(r)).catch(e => console.error('❌', e.message));
+  analyze(stack, contextLines).then(r => console.log(r)).catch(e => console.error('❌', e.message));
 } else {
   let d = '';
   process.stdin.on('data', c => d += c);
   process.stdin.on('end', () => {
     const s = d.trim();
-    if (s) analyze(s, 5).then(r => console.log(r)).catch(e => console.error('❌', e.message));
-    else console.log('用法: node scripts/analyze.js "<堆栈>" 或通过管道传入');
+    if (s) analyze(s, contextLines).then(r => console.log(r)).catch(e => console.error('❌', e.message));
+    else console.log('用法: node scripts/analyze.js "<堆栈>" [上下文行数]');
   });
 }
